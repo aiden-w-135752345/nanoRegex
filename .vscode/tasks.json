@@ -12,6 +12,8 @@
                 "-pedantic",
                 "-g",
                 "*.cpp",
+                "-o",
+                "a.out"
             ],
             "options": {
                 "cwd": "${fileDirname}"
