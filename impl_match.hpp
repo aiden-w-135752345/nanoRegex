@@ -8,31 +8,17 @@ namespace nanoRegexImpl{
     static int gen=1;
     struct Thread;
     struct Captures{
-        int*refs;
-        std::string::iterator*values;
-        Captures():refs(new int),values(new std::string::iterator[re->numCaptures]){*refs=1;}
-        Captures(nullptr_t):refs(nullptr),values(nullptr){}
-        Captures(const Captures&other):refs(other.refs),values(other.values){++*refs;};
-        Captures(Captures&& other):Captures(nullptr){swap(*this,other);}
-        Captures& operator=(Captures other){
-            swap(*this,other);
-            return *this;
-        };
-        friend void swap(Captures&a, Captures&b){
-            using std::swap;
-            swap(a.refs,b.refs);
-            swap(a.values,b.values);
+        size_t refs;std::string::iterator values[1];
+        void decref(){if(--refs==0){free(this);}}
+        static Captures*create(size_t numCaptures){
+            Captures* caps=(Captures*)malloc(sizeof(Captures)+((ssize_t)numCaptures-1)*(ssize_t)sizeof(std::string::iterator));
+            caps->refs=1;
+            return caps;
         }
-        ~Captures(){
-            if(values!=nullptr&&--*refs==0){
-                delete refs;delete[]values;values=nullptr;
-            }
-        }
-        Captures update(int idx,std::string::iterator val)const{
-            if(values==nullptr){throw "dead";}
-            Captures edited;
-            for(int i=0;i<re->numCaptures;i++)edited.values[i]=values[i];
-            edited.values[idx]=val;
+        Captures*update(size_t idx,std::string::iterator val,size_t numCaptures)const{
+            Captures*edited=create(numCaptures);
+            for(size_t i=0;i<numCaptures;i++)edited->values[i]=values[i];
+            edited->values[idx]=val;
             return edited;
         }
     };
@@ -40,20 +26,22 @@ namespace nanoRegexImpl{
         typedef NanoRegex::StatePtr StatePtr;
         typedef NanoRegex::State State;
         StatePtr state;
-        Captures captures;
-        Thread(StatePtr s,Captures c):state(s),captures(std::move(c)){}
-        static void add(StatePtr state,Captures captures,std::vector<Thread>*l,std::string::iterator sp,int gen) {
+        Captures*captures;
+        Thread(StatePtr s,Captures*c):state(s),captures(c){}
+        static void add(StatePtr state,Captures*captures,std::vector<Thread>*l,std::string::iterator sp,int gen) {
             if(re->states[state].gen==gen){return;}
             re->states[state].gen=gen;
             if(re->states[state].type == State::SPLIT){
+                captures->refs+=2;
                 Thread::add(re->states[state].out,captures,l,sp,gen);
                 Thread::add(re->states[state].out1,captures,l,sp,gen);
                 return;
             }
             if(re->states[state].type == State::SAVE){
-                Thread::add(re->states[state].out,captures.update(re->states[state].capture,sp),l,sp,gen);
+                Thread::add(re->states[state].out,captures->update(re->states[state].capture,sp,re->numCaptures),l,sp,gen);
                 return;
             }
+            captures->refs++;
             l->emplace_back(state,captures);
         }
     };

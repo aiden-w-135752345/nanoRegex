@@ -17,15 +17,15 @@ class NanoRegex {
         union{
             char c;
             StatePtr out1;
-            int capture;
+            size_t capture;
         };
         State(Type t,char cc):type(t),out(-1),c(cc){if(type!=CHAR)throw"wrong args";}
-        State(Type t,int cc):type(t),out(-1),capture(cc){if(type!=SAVE)throw"wrong args";}
+        State(Type t,size_t cc):type(t),out(-1),capture(cc){if(type!=SAVE)throw"wrong args";}
         State(Type t):type(t),out(-1){if(type!=ANY&&type!=SPLIT&&type!=MATCH)throw"wrong args";}
     };
     std::vector<State>states;
     StatePtr start;
-    int numCaptures;
+    size_t numCaptures;
 public:
     NanoRegex(char*);
     std::string::iterator* match(std::string);
