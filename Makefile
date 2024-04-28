@@ -11,15 +11,15 @@ nanoRegex.a: impl.cpp nanoRegex.hpp cx.hpp
 	rm impl.o
 
 
-test.out: main.cpp test.o nanoRegex.hpp cx.hpp
-	g++ $(CFLAGS) -Og -g main.cpp test.o -o $@ # -Wl,-M
+test.out: test.cpp test.o nanoRegex.hpp cx.hpp
+	g++ $(CFLAGS) -Og -g test.cpp test.o -o $@ # -Wl,-M
 
 test.o: impl.cpp nanoRegex.hpp cx.hpp
 	g++ $(CFLAGS) -Og -g -c impl.cpp -o $@
 
 
-asan.out: main.cpp asan.o nanoRegex.hpp cx.hpp
-	g++ $(CFLAGS) -Og -g -fsanitize=address main.cpp test.o -o $@
+asan.out: test.cpp asan.o nanoRegex.hpp cx.hpp
+	g++ $(CFLAGS) -Og -g -fsanitize=address test.cpp test.o -o $@
 
 asan.o: impl.cpp nanoRegex.hpp cx.hpp
 	g++ $(CFLAGS) -Og -g -fsanitize=address -c impl.cpp -o $@

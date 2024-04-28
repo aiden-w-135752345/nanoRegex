@@ -1,20 +1,20 @@
-#include <cstdlib>
+#include <cstddef>
 #include <stdexcept>
 #ifndef NANOREGEX_HPP
 #define NANOREGEX_HPP
 namespace NanoRegex_detail{
-    struct State;
-    using StateIdx=size_t;
+    struct UnoptimizedState;
+    using StateIdx=std::size_t;
     struct init_struct;
 }
 class NanoRegex{
-    using State=NanoRegex_detail::State;
+    using UnoptimizedState=NanoRegex_detail::UnoptimizedState;
     using StateIdx=NanoRegex_detail::StateIdx;
     using init_struct=NanoRegex_detail::init_struct;
-    const State*states;
-    StateIdx numStates;
+    const UnoptimizedState*states;
+    std::size_t numStates;
     bool shouldDelete;
-    size_t numCaptures;
+    std::size_t numCaptures;
 public:
     struct parse_exception:public std::invalid_argument{using std::invalid_argument::invalid_argument;};
     NanoRegex(const char*);
